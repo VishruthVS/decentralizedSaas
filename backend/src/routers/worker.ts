@@ -39,6 +39,7 @@ router.post("/signin", async (req, res) => {
         })
     }
 });
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcxODcyMDQ3OX0.jBZ5clo9VzisrzKsBzyNnaSZCa_lHX3P-pN09W5HXMQ
 router.get("/balance", workerMiddleware, async (req, res) => {
     // @ts-ignore
     const userId: string = req.userId;

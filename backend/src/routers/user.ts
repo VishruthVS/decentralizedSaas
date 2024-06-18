@@ -12,7 +12,7 @@ const s3Client = new S3Client({
         accessKeyId: process.env.ACCESS_KEY_ID ?? "",
         secretAccessKey: process.env.ACCESS_SECRET ?? "",
     },
-    region: "us-east-1"
+    region: "ap-south-1"
 });
 const router = Router();
 const prismaClient = new PrismaClient();
@@ -124,11 +124,14 @@ router.get("/presignedUrl", authMiddleware, async (req, res) => {
     const userId = req.userId;
 
     const { url, fields } = await createPresignedPost(s3Client, {
-        Bucket: 'decentralized-saas',
-        Key: `saas/${userId}/${Math.random()}/image.jpg`,
+        Bucket: 'decentralised-saas',
+        Key: `fiver/${userId}/${Math.random()}/image.jpg`,
         Conditions: [
             ['content-length-range', 0, 5 * 1024 * 1024] // 5 MB max
         ],
+        Fields: {
+            'Content-Type': 'image/png'
+        },
         Expires: 3600
     })
 
@@ -167,6 +170,10 @@ router.post("/signin", async (req, res) => {
             token
         })
     }
+});
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxODcxNjUyN30.R2f0aEErqmD4npP1iEDfRjmLJcylk7VbwPx3AuO_aYss
+router.get("/signup", async (req, res) => {
+    res.send('Hello, World!');
 });
 
 export default router;
