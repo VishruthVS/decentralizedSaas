@@ -7,6 +7,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
     try {
         const decoded = jwt.verify(authHeader, JWT_SECRET);
+        console.log(decoded);
         // @ts-ignore
 
         if (decoded.userId) {
@@ -21,7 +22,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
         }
     } catch (e) {
         return res.status(403).json({
-            message: "You are not logged in"
+            message: "You are not logged in cache block"
         })
     }
 

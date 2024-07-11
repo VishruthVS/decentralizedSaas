@@ -129,9 +129,11 @@ router.get("/presignedUrl", authMiddleware, async (req, res) => {
         Conditions: [
             ['content-length-range', 0, 5 * 1024 * 1024] // 5 MB max
         ],
+        /*
         Fields: {
             'Content-Type': 'image/png'
         },
+        */
         Expires: 3600
     })
 
