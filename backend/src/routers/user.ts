@@ -1,4 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3";
+import nacl from "tweetnacl";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
@@ -6,6 +7,8 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET, TOTAL_DECIMALS } from "../config";
 import { authMiddleware } from "../middleware";
 import { createTaskInput } from "../types";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+
 const DEFAULT_TITLE = "Select the most clickable thumbnail";
 const PARENT_WALLET_ADDRESS = "2KeovpYvrgpziaDsq8nbNMP4mc48VNBVXb5arbqrg9Cq";
 const s3Client = new S3Client({
@@ -228,10 +231,25 @@ router.get("/presignedUrl", authMiddleware, async (req, res) => {
 })
 
 router.post("/signin", async (req, res) => {
-    const hardCodedWalletAddress = "0xCDAF44CE32B7f1CdA63d1d2D2b8F47951377A670"
+    // const hardCodedWalletAddress = "0xCDAF44CE32B7f1CdA63d1d2D2b8F47951377A670"
+    const { publicKey, signature } = req.body;
+    const message = new TextEncoder().encode("Sign into mechanical turks");
+
+    const result = nacl.sign.detached.verify(
+        message,
+        new Uint8Array(signature.data),
+        new PublicKey(publicKey).toBytes(),
+    );
+
+
+    if (!result) {
+        return res.status(411).json({
+            message: "Incorrect signature"
+        })
+    }
     const existingUser = await prismaClient.user.findFirst({
         where: {
-            address: hardCodedWalletAddress
+            address: publicKey
         }
     })
     if (existingUser) {
@@ -244,7 +262,7 @@ router.post("/signin", async (req, res) => {
     } else {
         const user = await prismaClient.user.create({
             data: {
-                address: hardCodedWalletAddress
+                address: publicKey
             }
         })
 
