@@ -1,13 +1,13 @@
 "use client";
 
-// import { useWallet } from '@solana/wallet-adapter-react';
-// import {
-//     WalletDisconnectButton,
-//     WalletMultiButton
-// } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
+import {
+    WalletDisconnectButton,
+    WalletMultiButton
+} from '@solana/wallet-adapter-react-ui';
 
 export const Appbar = () => {
-   // const { publicKey , signMessage} = useWallet();
+   const { publicKey , signMessage} = useWallet();
 /*
     async function signAndSend() {
         if (!publicKey) {
@@ -33,8 +33,8 @@ export const Appbar = () => {
         <div className="text-2xl pl-4 flex justify-center pt-3">
             Turkify
         </div>
-        {/* <div className="text-xl pr-4 pb-2">
-            {publicKey  ? <WalletDisconnectButton /> : <WalletMultiButton />}
-        </div> */}
+        { <div className="text-xl pr-4 pb-2">
+                {publicKey  ? <WalletDisconnectButton /> : <WalletMultiButton />}
+        </div> }
     </div>
 }
