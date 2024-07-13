@@ -8,7 +8,7 @@ import nacl from "tweetnacl";
 import { JWT_SECRET } from "../config";
 import { authMiddleware } from "../middleware";
 import { createTaskInput } from "../types";
-const connection = new Connection(process.env.RPC_URL ?? "");
+const connection = new Connection("https://solana-devnet.g.alchemy.com/v2/kJrbR83SH5Ie5VIXAt0uVjoX-oEP2DUp" ?? "");
 const DEFAULT_TITLE = "Select the most clickable thumbnail";
 const PARENT_WALLET_ADDRESS = "2KeovpYvrgpziaDsq8nbNMP4mc48VNBVXb5arbqrg9Cq";
 const s3Client = new S3Client({
@@ -100,7 +100,7 @@ router.post("/task", authMiddleware, async (req, res) => {
         })
     }
     let response = await prismaClient.$transaction(async tx => {
-
+        console.log(parsedData.data)
         const response = await tx.task.create({
             data: {
                 //@ts-ignore
