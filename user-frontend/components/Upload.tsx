@@ -3,6 +3,8 @@ import { UploadImage } from "@/components/UploadImage";
 import { BACKEND_URL } from "@/utils";
 //import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 //import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,8 +13,9 @@ export const Upload = () => {
     const [images, setImages] = useState<string[]>([]);
     const [title, setTitle] = useState("");
     const [txSignature, setTxSignature] = useState("");
-   // const { publicKey, sendTransaction } = useWallet();
-    //const { connection } = useConnection();
+   const { publicKey, sendTransaction } = useWallet();
+   
+    const { connection } = useConnection();
     const router = useRouter();
 
     async function onSubmit() {
@@ -30,13 +33,13 @@ export const Upload = () => {
 
         router.push(`/task/${response.data.id}`)
     }
-/*
+
     async function makePayment() {
 
         const transaction = new Transaction().add(
             SystemProgram.transfer({
                 fromPubkey: publicKey!,
-                toPubkey: new PublicKey("2KeovpYvrgpziaDsq8nbNMP4mc48VNBVXb5arbqrg9Cq"),
+                toPubkey: new PublicKey("FPDbzAWTcoDRavd8RGXYa8QDojArJzUkTZW8zM6E92Qk"),
                 lamports: 100000000,
             })
         );
@@ -51,7 +54,7 @@ export const Upload = () => {
         await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
         setTxSignature(signature);
     }
-*/
+
     return <div className="flex justify-center">
         <div className="max-w-screen-lg w-full">
             <div className="text-2xl text-left pt-20 w-full pl-4">
