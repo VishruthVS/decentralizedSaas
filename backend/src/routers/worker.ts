@@ -1,13 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
-import { WORKER_JWTSECRET } from "../config";
+import { TOTAL_DECIMALS, WORKER_JWTSECRET } from "../config";
 import { getNextTask } from "../db";
 import { workerMiddleware } from "../middleware";
 import { createSubmissionInput } from "../types";
+import nacl from "tweetnacl";
+
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+
 const router = Router();
 const prismaClient = new PrismaClient();
 const TOTAL_SUBMISSIONS = 100;
+/*
 router.post("/signin", async (req, res) => {
     const hardCodedWalletAddress = "0xCDAF44CE32B7f1CdA63d1d2D2b8F47951377A670"
     const existingUser = await prismaClient.worker.findFirst({
@@ -39,7 +44,58 @@ router.post("/signin", async (req, res) => {
         })
     }
 });
+*/
 //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcxODcyMDQ3OX0.jBZ5clo9VzisrzKsBzyNnaSZCa_lHX3P-pN09W5HXMQ
+router.post("/signin", async (req, res) => {
+    const { publicKey, signature } = req.body;
+    const message = new TextEncoder().encode("Sign into mechanical turks as a worker");
+
+    const result = nacl.sign.detached.verify(
+        message,
+        new Uint8Array(signature.data),
+        new PublicKey(publicKey).toBytes(),
+    );
+
+    if (!result) {
+        return res.status(411).json({
+            message: "Incorrect signature"
+        })
+    }
+
+    const existingUser = await prismaClient.worker.findFirst({
+        where: {
+            address: publicKey
+        }
+    })
+
+    if (existingUser) {
+        const token = jwt.sign({
+            userId: existingUser.id
+        }, WORKER_JWTSECRET)
+
+        res.json({
+            token,
+            amount: existingUser.pending_amount / TOTAL_DECIMALS
+        })
+    } else {
+        const user = await prismaClient.worker.create({
+            data: {
+                address: publicKey,
+                pending_amount: 0,
+                locked_amount: 0
+            }
+        });
+
+        const token = jwt.sign({
+            userId: user.id
+        }, WORKER_JWTSECRET)
+
+        res.json({
+            token,
+            amount: 0
+        })
+    }
+});
 router.get("/balance", workerMiddleware, async (req, res) => {
     // @ts-ignore
     const userId: string = req.userId;
