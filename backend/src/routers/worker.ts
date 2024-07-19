@@ -1,17 +1,21 @@
 import { PrismaClient } from "@prisma/client";
+import { decode } from "bs58";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
+import nacl from "tweetnacl";
 import { TOTAL_DECIMALS, WORKER_JWTSECRET } from "../config";
 import { getNextTask } from "../db";
 import { workerMiddleware } from "../middleware";
 import { createSubmissionInput } from "../types";
-import nacl from "tweetnacl";
 
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import privatekey from "../privateKey";
 
 const router = Router();
 const prismaClient = new PrismaClient();
 const TOTAL_SUBMISSIONS = 100;
+const connection = new Connection("https://solana-devnet.g.alchemy.com/v2/kJrbR83SH5Ie5VIXAt0uVjoX-oEP2DUp" ?? "");
+
 /*
 router.post("/signin", async (req, res) => {
     const hardCodedWalletAddress = "0xCDAF44CE32B7f1CdA63d1d2D2b8F47951377A670"
@@ -123,43 +127,40 @@ router.post("/payout", workerMiddleware, async (req, res) => {
             message: "User not found"
         })
     }
-    /*
-        const transaction = new Transaction().add(
-            SystemProgram.transfer({
-                fromPubkey: new PublicKey("2KeovpYvrgpziaDsq8nbNMP4mc48VNBVXb5arbqrg9Cq"),
-                toPubkey: new PublicKey(worker.address),
-                lamports: 1000_000_000 * worker.pending_amount / TOTAL_DECIMALS,
-            })
-        );
-    
-    
-        console.log(worker.address);
-    
-        const keypair = Keypair.fromSecretKey(decode(privateKey));
-    
-        // TODO: There's a double spending problem here
-        // The user can request the withdrawal multiple times
-        // Can u figure out a way to fix it?
-        let signature = "";
-        try {
-            signature = await sendAndConfirmTransaction(
-                connection,
-                transaction,
-                [keypair],
-            );
-    
-        } catch (e) {
-            return res.json({
-                message: "Transaction failed"
-            })
-        }
-    
-        console.log(signature)
-    */
-    // We should add a lock here
+
+    const transaction = new Transaction().add(
+        SystemProgram.transfer({
+            fromPubkey: new PublicKey("FPDbzAWTcoDRavd8RGXYa8QDojArJzUkTZW8zM6E92Qk"),
+            toPubkey: new PublicKey(worker.address),
+            lamports: 1000_000_000 * worker.pending_amount / TOTAL_DECIMALS,
+        })
+    );
+
+
     console.log(worker.address);
-    const address = worker.address;
-    const tnxId = "0x123123123"
+
+    const keypair = Keypair.fromSecretKey(decode(privatekey));
+
+    // TODO: There's a double spending problem here
+    // The user can request the withdrawal multiple times
+    // Can u figure out a way to fix it?
+    let signature = "";
+    try {
+        signature = await sendAndConfirmTransaction(
+            connection,
+            transaction,
+            [keypair],
+        );
+
+    } catch (e) {
+        return res.json({
+            message: "Transaction failed"
+        })
+    }
+
+    console.log(signature)
+
+    // We should add a lock here
     await prismaClient.$transaction(async tx => {
         await tx.worker.update({
             where: {
@@ -180,7 +181,7 @@ router.post("/payout", workerMiddleware, async (req, res) => {
                 user_id: Number(userId),
                 amount: worker.pending_amount,
                 status: "Processing",
-                signature: tnxId
+                signature: signature
             }
         })
     })

@@ -69,7 +69,7 @@ export const Upload = () => {
 
             <label className="pl-4 block mt-8 text-md font-medium text-gray-900 text-black">Add Images</label>
             <div className="flex justify-center pt-4 max-w-screen-lg">
-                {images.map(image => <UploadImage image={image} onImageAdded={(imageUrl) => {
+                {images.map((image,index) => <UploadImage key={index} image={image} onImageAdded={(imageUrl) => {
                     setImages(i => [...i, imageUrl]);
                 }} />)}
             </div>
